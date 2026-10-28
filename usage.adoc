@@ -1,5 +1,18 @@
 = Usage
 
+== Output Formats
+
+Pass `-o` / `--output` to choose how a diff is rendered:
+
+* `shell` (default) -- one `key: old → new` line per change.
+* `columns` -- aligned `key: old -> new` columns.
+* `yaml` -- machine-readable YAML.
+* `summary` -- a dashboard overview (stat cards for modified/added/removed
+  keys, impacted sections, a deploy-impact estimate, and a side-by-side
+  table). Only supported when comparing exactly two files.
+
+`$  driftmap -o summary ./tests/values-dev.yaml ./tests/values-prod.yaml`
+
 == Compare Two Side-by-Side Files
 
 `$  driftmap ./tests/values-dev.yaml ./tests/values-prod.yaml`

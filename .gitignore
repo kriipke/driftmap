@@ -1,0 +1,7 @@
+.DS_Store
+/driftmap
+/driftmap-api
+/dist/
+.env
+.env.*
+!.env.example

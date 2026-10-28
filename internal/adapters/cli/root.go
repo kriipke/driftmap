@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/kriipke/driftmap/pkg/differ"
 	"gopkg.in/yaml.v3"
@@ -38,6 +39,11 @@ A and B may both be files (single-file diff) or both be directories
 all YAML files under a path between two git refs.`,
 	Args: cobra.MaximumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// The summary dashboard only makes sense for a single two-file diff.
+		if outputFormat == "summary" && !isTwoFileArgs(args) {
+			return fmt.Errorf("the 'summary' output format is only supported for a two-file comparison")
+		}
+
 		// Directory diff mode (git refs)
 		if fromRef != "" && toRef != "" && diffPath != "" {
 			return runGitRefDirDiff(fromRef, toRef, diffPath, outputFormat)
@@ -74,7 +80,21 @@ func init() {
 	rootCmd.Flags().StringVar(&fromRef, "from", "", "Git ref/tag/commit for the base comparison (used with --to and --path)")
 	rootCmd.Flags().StringVar(&toRef, "to", "", "Git ref/tag/commit for the target comparison (used with --from and --path)")
 	rootCmd.Flags().StringVar(&diffPath, "path", "", "Compare all yaml files under this path between --from and --to refs")
-	rootCmd.Flags().StringVarP(&outputFormat, "output", "o", "shell", "Output format: 'shell' (default), 'yaml', or 'columns'")
+	rootCmd.Flags().StringVarP(&outputFormat, "output", "o", "shell", "Output format: 'shell' (default), 'yaml', 'columns', or 'summary'")
+}
+
+// isTwoFileArgs reports whether the invocation is a plain two-file comparison
+// (two positional args, both regular files, and no git-ref flags in play).
+func isTwoFileArgs(args []string) bool {
+	if fromRef != "" || toRef != "" || diffPath != "" || len(args) != 2 {
+		return false
+	}
+	for _, a := range args {
+		if dir, err := isDir(a); err != nil || dir {
+			return false
+		}
+	}
+	return true
 }
 
 // isDir reports whether path exists and is a directory.
@@ -117,7 +137,11 @@ func runFileDiff(fileA, fileB, outputFormat string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to parse %s: %w", fileB, err)
 	}
+	start := time.Now()
 	diffs := differ.Diff(yamlA, yamlB)
+	if outputFormat == "summary" {
+		return renderSummary(fileA, fileB, diffs, time.Since(start))
+	}
 	return printDiffs(diffs, outputFormat)
 }
 
@@ -396,7 +420,9 @@ func printDiffs(diffs []differ.VariableDiff, outputFormat string) error {
 			)
 		}
 		return nil
+	case "summary":
+		return fmt.Errorf("the 'summary' output format is only supported for a two-file comparison")
 	default:
-		return fmt.Errorf("Unknown output format: %s. Supported: 'shell', 'yaml', 'columns'", outputFormat)
+		return fmt.Errorf("Unknown output format: %s. Supported: 'shell', 'yaml', 'columns', 'summary'", outputFormat)
 	}
 }

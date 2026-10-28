@@ -35,7 +35,7 @@ Arguments:
           Both must be files, or both must be directories.
 
 Flags:
-  -o, --output string   Output format: 'shell' (default), 'yaml', or 'columns'
+  -o, --output string   Output format: 'shell' (default), 'yaml', 'columns', or 'summary'
       --from string     Git ref/tag/commit for the base (used with --to and --path)
       --to string       Git ref/tag/commit for the target (used with --from and --path)
       --path string     Compare all YAML files under this path between --from and --to
@@ -51,6 +51,23 @@ Examples:
   # Compare a chart directory between two git refs
   driftmap --from v1.2.0 --to v1.3.0 --path charts/app
 ```
+
+The `summary` format renders a terminal dashboard for a two-file comparison:
+
+[source,shell]
+----
+$ driftmap -o summary ./tests/values-dev.yaml ./tests/values-prod.yaml
+----
+
+It shows change counts, impacted sections, and a side-by-side table. Deployment
+impact is a keyword-based estimate; it does not inspect a cluster or predict an
+actual rollout. Summary values are truncated; use `-o shell` for full values.
+
+=== Planned Work and License
+
+See link:ROADMAP.md[the roadmap] for planned correctness, automation, terminal,
+HTTP, and release improvements. DriftMap is licensed under the
+link:LICENSE[MIT License].
 
 ==== Compare Two Helm Values Files
 
