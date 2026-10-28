@@ -1,5 +1,7 @@
 = **`+driftmap+`** -- __YAML drift detection__
 
+image::docs/images/driftmap.png[DriftMap logo,width=240,align=center]
+
 **DriftMap** reports the _drift_ between two sets of YAML configuration. It flattens
 each side to dotted key paths and shows which values were changed, added, or removed.
 
